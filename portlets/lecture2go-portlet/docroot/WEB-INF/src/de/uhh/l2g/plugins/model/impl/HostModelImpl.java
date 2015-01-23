@@ -62,10 +62,11 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 			{ "streamer", Types.VARCHAR },
 			{ "port", Types.INTEGER },
 			{ "serverRoot", Types.VARCHAR },
+			{ "serverTemplate", Types.VARCHAR },
 			{ "name", Types.VARCHAR },
-			{ "serverTemplate", Types.VARCHAR }
+			{ "groupId", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table LG_Host (hostId LONG not null primary key,protocol VARCHAR(75) null,streamer VARCHAR(75) null,port INTEGER,serverRoot VARCHAR(75) null,name VARCHAR(75) null,serverTemplate VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table LG_Host (hostId LONG not null primary key,protocol VARCHAR(75) null,streamer VARCHAR(75) null,port INTEGER,serverRoot VARCHAR(75) null,serverTemplate VARCHAR(75) null,name VARCHAR(75) null,groupId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table LG_Host";
 	public static final String ORDER_BY_JPQL = " ORDER BY host.hostId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY LG_Host.hostId ASC";
@@ -78,7 +79,11 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(com.liferay.util.service.ServiceProps.get(
 				"value.object.finder.cache.enabled.de.uhh.l2g.plugins.model.Host"),
 			true);
-	public static final boolean COLUMN_BITMASK_ENABLED = false;
+	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(com.liferay.util.service.ServiceProps.get(
+				"value.object.column.bitmask.enabled.de.uhh.l2g.plugins.model.Host"),
+			true);
+	public static long GROUPID_COLUMN_BITMASK = 1L;
+	public static long HOSTID_COLUMN_BITMASK = 2L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.util.service.ServiceProps.get(
 				"lock.expiration.time.de.uhh.l2g.plugins.model.Host"));
 
@@ -124,8 +129,9 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 		attributes.put("streamer", getStreamer());
 		attributes.put("port", getPort());
 		attributes.put("serverRoot", getServerRoot());
-		attributes.put("name", getName());
 		attributes.put("serverTemplate", getServerTemplate());
+		attributes.put("name", getName());
+		attributes.put("groupId", getGroupId());
 
 		return attributes;
 	}
@@ -162,16 +168,22 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 			setServerRoot(serverRoot);
 		}
 
+		String serverTemplate = (String)attributes.get("serverTemplate");
+
+		if (serverTemplate != null) {
+			setServerTemplate(serverTemplate);
+		}
+
 		String name = (String)attributes.get("name");
 
 		if (name != null) {
 			setName(name);
 		}
 
-		String serverTemplate = (String)attributes.get("serverTemplate");
+		Long groupId = (Long)attributes.get("groupId");
 
-		if (serverTemplate != null) {
-			setServerTemplate(serverTemplate);
+		if (groupId != null) {
+			setGroupId(groupId);
 		}
 	}
 
@@ -241,6 +253,21 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 	}
 
 	@Override
+	public String getServerTemplate() {
+		if (_serverTemplate == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return _serverTemplate;
+		}
+	}
+
+	@Override
+	public void setServerTemplate(String serverTemplate) {
+		_serverTemplate = serverTemplate;
+	}
+
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -256,18 +283,29 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 	}
 
 	@Override
-	public String getServerTemplate() {
-		if (_serverTemplate == null) {
-			return StringPool.BLANK;
-		}
-		else {
-			return _serverTemplate;
-		}
+	public long getGroupId() {
+		return _groupId;
 	}
 
 	@Override
-	public void setServerTemplate(String serverTemplate) {
-		_serverTemplate = serverTemplate;
+	public void setGroupId(long groupId) {
+		_columnBitmask |= GROUPID_COLUMN_BITMASK;
+
+		if (!_setOriginalGroupId) {
+			_setOriginalGroupId = true;
+
+			_originalGroupId = _groupId;
+		}
+
+		_groupId = groupId;
+	}
+
+	public long getOriginalGroupId() {
+		return _originalGroupId;
+	}
+
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -302,8 +340,9 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 		hostImpl.setStreamer(getStreamer());
 		hostImpl.setPort(getPort());
 		hostImpl.setServerRoot(getServerRoot());
-		hostImpl.setName(getName());
 		hostImpl.setServerTemplate(getServerTemplate());
+		hostImpl.setName(getName());
+		hostImpl.setGroupId(getGroupId());
 
 		hostImpl.resetOriginalValues();
 
@@ -354,6 +393,13 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 
 	@Override
 	public void resetOriginalValues() {
+		HostModelImpl hostModelImpl = this;
+
+		hostModelImpl._originalGroupId = hostModelImpl._groupId;
+
+		hostModelImpl._setOriginalGroupId = false;
+
+		hostModelImpl._columnBitmask = 0;
 	}
 
 	@Override
@@ -388,14 +434,6 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 			hostCacheModel.serverRoot = null;
 		}
 
-		hostCacheModel.name = getName();
-
-		String name = hostCacheModel.name;
-
-		if ((name != null) && (name.length() == 0)) {
-			hostCacheModel.name = null;
-		}
-
 		hostCacheModel.serverTemplate = getServerTemplate();
 
 		String serverTemplate = hostCacheModel.serverTemplate;
@@ -404,12 +442,22 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 			hostCacheModel.serverTemplate = null;
 		}
 
+		hostCacheModel.name = getName();
+
+		String name = hostCacheModel.name;
+
+		if ((name != null) && (name.length() == 0)) {
+			hostCacheModel.name = null;
+		}
+
+		hostCacheModel.groupId = getGroupId();
+
 		return hostCacheModel;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(15);
+		StringBundler sb = new StringBundler(17);
 
 		sb.append("{hostId=");
 		sb.append(getHostId());
@@ -421,10 +469,12 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 		sb.append(getPort());
 		sb.append(", serverRoot=");
 		sb.append(getServerRoot());
-		sb.append(", name=");
-		sb.append(getName());
 		sb.append(", serverTemplate=");
 		sb.append(getServerTemplate());
+		sb.append(", name=");
+		sb.append(getName());
+		sb.append(", groupId=");
+		sb.append(getGroupId());
 		sb.append("}");
 
 		return sb.toString();
@@ -432,7 +482,7 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(28);
 
 		sb.append("<model><model-name>");
 		sb.append("de.uhh.l2g.plugins.model.Host");
@@ -459,12 +509,16 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 		sb.append(getServerRoot());
 		sb.append("]]></column-value></column>");
 		sb.append(
+			"<column><column-name>serverTemplate</column-name><column-value><![CDATA[");
+		sb.append(getServerTemplate());
+		sb.append("]]></column-value></column>");
+		sb.append(
 			"<column><column-name>name</column-name><column-value><![CDATA[");
 		sb.append(getName());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>serverTemplate</column-name><column-value><![CDATA[");
-		sb.append(getServerTemplate());
+			"<column><column-name>groupId</column-name><column-value><![CDATA[");
+		sb.append(getGroupId());
 		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
@@ -479,7 +533,11 @@ public class HostModelImpl extends BaseModelImpl<Host> implements HostModel {
 	private String _streamer;
 	private int _port;
 	private String _serverRoot;
-	private String _name;
 	private String _serverTemplate;
+	private String _name;
+	private long _groupId;
+	private long _originalGroupId;
+	private boolean _setOriginalGroupId;
+	private long _columnBitmask;
 	private Host _escapedModel;
 }

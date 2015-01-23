@@ -77,8 +77,9 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 		attributes.put("streamer", getStreamer());
 		attributes.put("port", getPort());
 		attributes.put("serverRoot", getServerRoot());
-		attributes.put("name", getName());
 		attributes.put("serverTemplate", getServerTemplate());
+		attributes.put("name", getName());
+		attributes.put("groupId", getGroupId());
 
 		return attributes;
 	}
@@ -115,16 +116,22 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 			setServerRoot(serverRoot);
 		}
 
+		String serverTemplate = (String)attributes.get("serverTemplate");
+
+		if (serverTemplate != null) {
+			setServerTemplate(serverTemplate);
+		}
+
 		String name = (String)attributes.get("name");
 
 		if (name != null) {
 			setName(name);
 		}
 
-		String serverTemplate = (String)attributes.get("serverTemplate");
+		Long groupId = (Long)attributes.get("groupId");
 
-		if (serverTemplate != null) {
-			setServerTemplate(serverTemplate);
+		if (groupId != null) {
+			setGroupId(groupId);
 		}
 	}
 
@@ -244,6 +251,30 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 	}
 
 	@Override
+	public String getServerTemplate() {
+		return _serverTemplate;
+	}
+
+	@Override
+	public void setServerTemplate(String serverTemplate) {
+		_serverTemplate = serverTemplate;
+
+		if (_hostRemoteModel != null) {
+			try {
+				Class<?> clazz = _hostRemoteModel.getClass();
+
+				Method method = clazz.getMethod("setServerTemplate",
+						String.class);
+
+				method.invoke(_hostRemoteModel, serverTemplate);
+			}
+			catch (Exception e) {
+				throw new UnsupportedOperationException(e);
+			}
+		}
+	}
+
+	@Override
 	public String getName() {
 		return _name;
 	}
@@ -267,22 +298,21 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 	}
 
 	@Override
-	public String getServerTemplate() {
-		return _serverTemplate;
+	public long getGroupId() {
+		return _groupId;
 	}
 
 	@Override
-	public void setServerTemplate(String serverTemplate) {
-		_serverTemplate = serverTemplate;
+	public void setGroupId(long groupId) {
+		_groupId = groupId;
 
 		if (_hostRemoteModel != null) {
 			try {
 				Class<?> clazz = _hostRemoteModel.getClass();
 
-				Method method = clazz.getMethod("setServerTemplate",
-						String.class);
+				Method method = clazz.getMethod("setGroupId", long.class);
 
-				method.invoke(_hostRemoteModel, serverTemplate);
+				method.invoke(_hostRemoteModel, groupId);
 			}
 			catch (Exception e) {
 				throw new UnsupportedOperationException(e);
@@ -364,8 +394,9 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 		clone.setStreamer(getStreamer());
 		clone.setPort(getPort());
 		clone.setServerRoot(getServerRoot());
-		clone.setName(getName());
 		clone.setServerTemplate(getServerTemplate());
+		clone.setName(getName());
+		clone.setGroupId(getGroupId());
 
 		return clone;
 	}
@@ -414,7 +445,7 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(15);
+		StringBundler sb = new StringBundler(17);
 
 		sb.append("{hostId=");
 		sb.append(getHostId());
@@ -426,10 +457,12 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 		sb.append(getPort());
 		sb.append(", serverRoot=");
 		sb.append(getServerRoot());
-		sb.append(", name=");
-		sb.append(getName());
 		sb.append(", serverTemplate=");
 		sb.append(getServerTemplate());
+		sb.append(", name=");
+		sb.append(getName());
+		sb.append(", groupId=");
+		sb.append(getGroupId());
 		sb.append("}");
 
 		return sb.toString();
@@ -437,7 +470,7 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(28);
 
 		sb.append("<model><model-name>");
 		sb.append("de.uhh.l2g.plugins.model.Host");
@@ -464,12 +497,16 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 		sb.append(getServerRoot());
 		sb.append("]]></column-value></column>");
 		sb.append(
+			"<column><column-name>serverTemplate</column-name><column-value><![CDATA[");
+		sb.append(getServerTemplate());
+		sb.append("]]></column-value></column>");
+		sb.append(
 			"<column><column-name>name</column-name><column-value><![CDATA[");
 		sb.append(getName());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>serverTemplate</column-name><column-value><![CDATA[");
-		sb.append(getServerTemplate());
+			"<column><column-name>groupId</column-name><column-value><![CDATA[");
+		sb.append(getGroupId());
 		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
@@ -482,7 +519,8 @@ public class HostClp extends BaseModelImpl<Host> implements Host {
 	private String _streamer;
 	private int _port;
 	private String _serverRoot;
-	private String _name;
 	private String _serverTemplate;
+	private String _name;
+	private long _groupId;
 	private BaseModel<?> _hostRemoteModel;
 }

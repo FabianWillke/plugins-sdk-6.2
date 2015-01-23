@@ -49,6 +49,7 @@
 <%@ page import="com.liferay.taglib.portlet.RenderURLParamsTag"%>
 <%@ page import="com.liferay.util.portlet.PortletRequestUtil"%>
 <%@ page import="com.liferay.portlet.PortletURLUtil"%>
+<%@ page import="com.liferay.portal.kernel.util.PropsUtil"%>
 
 <%@ page import="org.apache.jasper.tagplugins.jstl.core.ForEach"%>
 <%@ page import="org.springframework.scripting.config.LangNamespaceUtils"%>
@@ -84,6 +85,9 @@
 <%@ page import="de.uhh.l2g.plugins.model.impl.LicenseImpl"%>
 
 <%@ page import="de.uhh.l2g.plugins.util.Lecture2GoRoleChecker"%>
+<%@ page import="de.uhh.l2g.plugins.permission.L2GModelPermission" %>
+<%@ page import="de.uhh.l2g.plugins.permission.InstitutionPermission" %>
+<%@ page import="de.uhh.l2g.plugins.permission.HostPermission" %>
 <%@ page import="com.sun.xml.internal.rngom.ast.builder.Include"%>
 
 <portlet:defineObjects />
